@@ -24,6 +24,7 @@ import com.globant.utils.plantuml.classes.beans.ClassObject;
 import com.globant.utils.plantuml.classes.beans.PackageObject;
 import com.globant.utils.plantuml.classes.render.filters.Filter;
 import com.globant.utils.plantuml.classes.render.filters.Filters;
+import com.globant.utils.plantuml.classes.structure.Implementation;
 import com.globant.utils.plantuml.classes.structure.Relation;
 import com.globant.utils.plantuml.classes.structure.Use;
 import com.globant.utils.plantuml.classes.util.Constants;
@@ -218,7 +219,7 @@ public class PlantRenderer {
 		StringBuilder fileText = new StringBuilder();
 		if (relations != null) {
 			for (Relation relation : relations) {
-				if (!relation.toString().contains("..up|>")) {
+				if (!relation.toString().contains(Implementation.RELATION_TYPE_IMPLEMENTATION)) {
 					fileText.append("'"+relation.toString()).append("\n");
 				}else{
 					fileText.append(relation.toString()).append("\n");
