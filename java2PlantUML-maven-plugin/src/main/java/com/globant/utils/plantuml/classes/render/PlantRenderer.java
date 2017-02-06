@@ -145,11 +145,12 @@ public class PlantRenderer {
 						fileText.append(participantHeader);
 						attachClassToDiagram(fileText, classObject);
 						fileText.append(relationsHeader);
-						if (classObject.getRelations() != null) {
-							for (Relation relation : classObject.getRelations()) {
-								fileText.append(relation.toString()).append("\n");
-							}
-						}
+//						if (classObject.getRelations() != null) {
+//							for (Relation relation : classObject.getRelations()) {
+//								fileText.append(relation.toString()).append("\n");
+//							}
+//						}
+						fileText.append(addRelationsToFile(classObject.getRelations()));
 						fileText.append(fileFooter);
 						String filePathName = directory+"/"+classObject.getClassName()+".iuml";
 						SaveFileHelper.createFile(fileText, filePathName);
@@ -172,11 +173,12 @@ public class PlantRenderer {
 					}
 					fileText.append(relationsHeader);
 					for (ClassObject classObject : packageObject.getClassObjects()) {
-						if (classObject.getRelations() != null) {
-							for (Relation relation : classObject.getRelations()) {
-								fileText.append(relation.toString()).append("\n");
-							}
-						}
+//						if (classObject.getRelations() != null) {
+//							for (Relation relation : classObject.getRelations()) {
+//								fileText.append(relation.toString()).append("\n");
+//							}
+//						}
+						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
 					fileText.append(fileFooter);
 					String filePathName = directory+"/packageClassDiagram.puml";
@@ -195,11 +197,12 @@ public class PlantRenderer {
 				fileText.append(relationsHeader);
 				for(PackageObject packageObject: packageObjects ){
 					for (ClassObject classObject : packageObject.getClassObjects()) {
-						if (classObject.getRelations() != null) {
-							for (Relation relation : classObject.getRelations()) {
-								fileText.append(relation.toString()).append("\n");
-							}
-						}
+//						if (classObject.getRelations() != null) {
+//							for (Relation relation : classObject.getRelations()) {
+//								fileText.append(relation.toString()).append("\n");
+//							}
+//						}
+						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
 				}
 				fileText.append(fileFooter);
@@ -209,6 +212,21 @@ public class PlantRenderer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private String addRelationsToFile(List<Relation> relations){
+		StringBuilder fileText = new StringBuilder();
+		if (relations != null) {
+			for (Relation relation : relations) {
+				if (!relation.toString().contains("..up|>")) {
+					fileText.append("'"+relation.toString()).append("\n");
+				}else{
+					fileText.append(relation.toString()).append("\n");
+				}
+				
+			}
+		}
+		return fileText.toString();
 	}
 	
 	private void attachClassToDiagram(StringBuilder fileText,ClassObject classObject){

@@ -6,12 +6,13 @@
 
     <groupId>com.globant.utils.plantuml.classes</groupId>
     <artifactId>java2PlantUML-maven-plugin</artifactId>
-    <version>1.0.0.0</version>
+    <version>${release.version}</version>
     <packaging>maven-plugin</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <release.version>1.0.1.0</release.version>
     </properties>
 
     <dependencies>
@@ -85,7 +86,7 @@
             <plugin>
                 <groupId>com.globant.utils.plantuml.classes</groupId>
 			    <artifactId>java2PlantUML-maven-plugin</artifactId>
-			    <version>1.0.0</version>
+			    <version>${release.version}</version>
                 <configuration>
                     <goalPrefix>java2PlantUML</goalPrefix>
                     <parse.relationTypeFilter>FILTER_ALLOW_ALL_RELATIONS</parse.relationTypeFilter>
