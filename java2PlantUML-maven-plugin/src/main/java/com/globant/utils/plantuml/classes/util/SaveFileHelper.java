@@ -71,11 +71,11 @@ public class SaveFileHelper {
 			e.printStackTrace();
 		}
    }
-   public static void createFile(StringBuilder pumlContent, String filePath) throws IOException {
+   public static void createFile(String pumlContent, String filePath) throws IOException {
 	      final File file = new File(filePath);
 	      BufferedWriter bw;
 	      bw = new BufferedWriter(new FileWriter(file));
-	      bw.write(pumlContent.toString());
+	      bw.write(pumlContent);
 
 	      bw.flush();
 	      bw.close();

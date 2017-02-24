@@ -53,6 +53,8 @@ public class PlantRenderer {
     private List<ClassObject> classObjects;
     private String renderType;
     
+    private static String DEFAULT_DIRECTORY = "/common/classes/";
+    
     private static final Map<Class<? extends Member>, MemberPrinter> memberPrinters = new HashMap<Class<? extends Member>, PlantRenderer.MemberPrinter>();
 
     static {
@@ -79,11 +81,46 @@ public class PlantRenderer {
         toTypesToShowAsMember.add(Pattern.compile("^java.lang.*"));
         toTypesToShowAsMember.add(Pattern.compile("^[^\\$]*"));
         this.relationsFilter = relationsFilter;
-        this.path = path;
+        this.path = path+DEFAULT_DIRECTORY;
         this.packageName = packageName;
         this.renderType = renderType;
     }
+    
+    public StringBuilder createFileHeader(){
+    	StringBuilder fileHeader = new StringBuilder();
+		return fileHeader.append("@startuml\n").append("' Created by Globant Peru\n\n")
+	      .append("' Using left to right direction to try a better layout feel free to edit ")
+	      .append("left to right direction\n");
+    	
+    }
 
+    public StringBuilder createFileFooter(){
+    	StringBuilder fileFooter = new StringBuilder();
+		return fileFooter.append("@enduml\n");
+    }
+    
+    public String makeDirVariableName(String packageName){
+    	return packageName.replace(".", "_").toUpperCase();
+    }
+    
+    public StringBuilder createDefineDirVariable(String packageName,String path){
+    	StringBuilder builder = new StringBuilder();
+    	builder.append("!define ");
+    	builder.append(makeDirVariableName(packageName)).append(" ");
+    	builder.append("../../.."+DEFAULT_DIRECTORY);
+    	builder.append(packageName);
+    	return builder;
+    }
+    
+    public StringBuilder createInclude(String dirVariable,String className){
+    	StringBuilder builder = new StringBuilder();
+    	builder.append("!include ");
+    	builder.append(dirVariable);
+    	builder.append("/");
+    	builder.append(className+".iuml");
+    	
+    	return builder;
+    }
 	/**
 	 * Render full contents
 	 * 
@@ -109,10 +146,8 @@ public class PlantRenderer {
 //			System.out.println(sb);
 //			SaveFileHelper.save(sb, path);
 			
-			StringBuilder fileHeader = new StringBuilder();
-			fileHeader.append("@startuml\n").append("' Created by Globant Peru\n\n")
-		      .append("' Using left to right direction to try a better layout feel free to edit\n")
-		      .append("left to right direction\n");
+			
+//			StringBuilder fileHeader = createFileHeader();
 			
 			StringBuilder participantHeader = new StringBuilder();
 			participantHeader.append("' Participants \n\n");
@@ -120,8 +155,7 @@ public class PlantRenderer {
 			StringBuilder relationsHeader = new StringBuilder();
 			relationsHeader.append("\n' Relations \n\n");
 			
-			StringBuilder fileFooter = new StringBuilder();
-			fileFooter.append("@enduml\n");
+//			StringBuilder fileFooter = createFileFooter();
 			
 			
 			
@@ -135,14 +169,25 @@ public class PlantRenderer {
 			
 			if (renderType.equals(Constants.RENDER_TYPE_CLASS_BY_CLASS)) {
 				
+				List<String> definitions = new ArrayList<String>();
+				List<String> includes = new ArrayList<String>();
+				List<String> relations = new ArrayList<String>();
+				
+				
 				for(PackageObject packageObject: packageObjects ){
+					
+					StringBuilder dirValiable = createDefineDirVariable(packageObject.getPackageName(), path);
+					definitions.add(dirValiable.toString());
 					
 					String directory = path+packageObject.getPackageName();
 					SaveFileHelper.createDirectories(directory);
 					
 					for (ClassObject classObject : packageObject.getClassObjects()) {
+						
+						includes.add(createInclude(makeDirVariableName(packageObject.getPackageName()), classObject.getClassName()).toString());
+						
 						StringBuilder fileText = new StringBuilder();
-						fileText.append(fileHeader);
+						fileText.append(createFileHeader());
 						fileText.append(participantHeader);
 						attachClassToDiagram(fileText, classObject);
 						fileText.append(relationsHeader);
@@ -151,14 +196,47 @@ public class PlantRenderer {
 //								fileText.append(relation.toString()).append("\n");
 //							}
 //						}
-						fileText.append(addRelationsToFile(classObject.getRelations()));
-						fileText.append(fileFooter);
+						
+						String classRelationList = addRelationsToFile(classObject.getRelations());
+						relations.add(classRelationList);
+						
+						fileText.append(classRelationList);
+						fileText.append(createFileFooter());
 						String filePathName = directory+"/"+classObject.getClassName()+".iuml";
-						SaveFileHelper.createFile(fileText, filePathName);
+						SaveFileHelper.createFile(fileText.toString(), filePathName);
 						
 					}
 				}
 				
+				
+				
+				StringBuilder generalFileText = new StringBuilder();
+				generalFileText.append(createFileHeader()).append("\n");
+				
+				Collections.sort(definitions);
+				Collections.sort(includes);
+				Collections.sort(relations);
+				
+				for (String definition : definitions) {
+					generalFileText.append(definition).append("\n");
+				}
+				generalFileText.append("\n");
+				for (String include : includes) {
+					generalFileText.append(include).append("\n");				
+				}
+				generalFileText.append("\n");
+				for (String relation : relations) {
+					generalFileText.append(relation).append("\n");
+				}
+				generalFileText.append("\n");
+				generalFileText.append(createFileFooter());
+				
+				String modelDirectory = "class-model";
+				String generalDirectory = path+modelDirectory;
+				SaveFileHelper.createDirectories(generalDirectory);
+				String filePathName = path+modelDirectory+"/class-diagram.puml";
+				
+				SaveFileHelper.createFile(generalFileText.toString().replace("o-left-", "o--"), filePathName);
 				
 			}else if (renderType.equals(Constants.RENDER_TYPE_PACKAGE_BY_PACKAGE)){
 				for(PackageObject packageObject: packageObjects ){
@@ -167,7 +245,7 @@ public class PlantRenderer {
 					SaveFileHelper.createDirectories(directory);
 					
 					StringBuilder fileText = new StringBuilder();
-					fileText.append(fileHeader);
+					fileText.append(createFileHeader());
 					fileText.append(participantHeader);
 					for (ClassObject classObject : packageObject.getClassObjects()) {
 						attachClassToDiagram(fileText, classObject);
@@ -181,14 +259,14 @@ public class PlantRenderer {
 //						}
 						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
-					fileText.append(fileFooter);
+					fileText.append(createFileFooter());
 					String filePathName = directory+"/packageClassDiagram.puml";
-					SaveFileHelper.createFile(fileText, filePathName);
+					SaveFileHelper.createFile(fileText.toString(), filePathName);
 				}
 			}else{
 				
 				StringBuilder fileText = new StringBuilder();
-				fileText.append(fileHeader);
+				fileText.append(createFileHeader());
 				fileText.append(participantHeader);
 				for(PackageObject packageObject: packageObjects ){
 					for (ClassObject classObject : packageObject.getClassObjects()) {
@@ -206,7 +284,7 @@ public class PlantRenderer {
 						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
 				}
-				fileText.append(fileFooter);
+				fileText.append(createFileFooter());
 				SaveFileHelper.save(fileText, path);
 			}
 			
@@ -217,15 +295,23 @@ public class PlantRenderer {
 	
 	private String addRelationsToFile(List<Relation> relations){
 		StringBuilder fileText = new StringBuilder();
+		List<String> strings = new ArrayList<>();
+		
 		if (relations != null) {
 			for (Relation relation : relations) {
 				if (!relation.toString().contains(Implementation.RELATION_TYPE_IMPLEMENTATION)) {
-					fileText.append("'"+relation.toString()).append("\n");
+//					fileText.append("'"+relation.toString()).append("\n");
+					strings.add("'"+relation.toString());
 				}else{
-					fileText.append(relation.toString()).append("\n");
+					strings.add(relation.toString());
+//					fileText.append(relation.toString()).append("\n");
 				}
 				
 			}
+		}
+		Collections.sort(strings);
+		for (String string : strings) {
+			fileText.append(string).append("\n");
 		}
 		return fileText.toString();
 	}
