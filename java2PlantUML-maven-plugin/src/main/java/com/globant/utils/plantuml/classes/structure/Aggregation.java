@@ -2,6 +2,8 @@ package com.globant.utils.plantuml.classes.structure;
 
 import java.lang.reflect.Member;
 
+import com.globant.utils.plantuml.classes.util.TypesHelper;
+
 /**
  * @author juanmf@gmail.com
  * @modified efrain.calla
@@ -60,7 +62,7 @@ public class Aggregation implements Relation {
     public String toString() {
         String fname = null == getMessage() ? "" : " : " + getMessage();
         return String.format("%s \"%s\" %s \"%s\" %s %s",
-                from.getName(), getFromCardinal(), RELATION_TYPE_AGGREGATION, toCardinal, to, fname
+                TypesHelper.changeClassName(from.getName()), getFromCardinal(), RELATION_TYPE_AGGREGATION, TypesHelper.changeClassName(toCardinal), TypesHelper.changeClassName(to), fname
             );
     }
 

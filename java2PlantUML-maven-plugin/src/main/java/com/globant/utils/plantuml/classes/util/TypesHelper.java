@@ -24,6 +24,15 @@ public class TypesHelper {
     public static String getSimpleName(String fqcn) {
         return fqcn.replaceAll(REGEX_FOR_PACKAGE, "$3 ");
     }
+    
+    public static String changeClassName(String name){
+		int signInternalClass = name.lastIndexOf("$");
+		int point = name.lastIndexOf(".");
+		if (signInternalClass>0 && point>0) {
+			return name.replace(name.substring(point+1,signInternalClass+1), "");
+		}
+		return name;
+	}
 
     public static Class<?> loadClass(String type, URLClassLoader classLoader){
         try {

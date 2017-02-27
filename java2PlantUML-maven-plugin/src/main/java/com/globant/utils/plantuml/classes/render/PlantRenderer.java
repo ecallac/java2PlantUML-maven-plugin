@@ -1,6 +1,5 @@
 package com.globant.utils.plantuml.classes.render;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -19,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.globant.utils.plantuml.classes.Parser;
 import com.globant.utils.plantuml.classes.beans.ClassObject;
 import com.globant.utils.plantuml.classes.beans.PackageObject;
@@ -30,10 +31,9 @@ import com.globant.utils.plantuml.classes.structure.Use;
 import com.globant.utils.plantuml.classes.util.Constants;
 import com.globant.utils.plantuml.classes.util.SaveFileHelper;
 import com.globant.utils.plantuml.classes.util.TypesHelper;
-
 import com.google.common.eventbus.EventBus;
+
 import edu.emory.mathcs.backport.java.util.Collections;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author juanmf@gmail.com
@@ -191,16 +191,9 @@ public class PlantRenderer {
 						fileText.append(participantHeader);
 						attachClassToDiagram(fileText, classObject);
 						fileText.append(relationsHeader);
-//						if (classObject.getRelations() != null) {
-//							for (Relation relation : classObject.getRelations()) {
-//								fileText.append(relation.toString()).append("\n");
-//							}
-//						}
+						relations.addAll(getRelationListString(classObject.getRelations()));
 						
-						String classRelationList = addRelationsToFile(classObject.getRelations());
-						relations.add(classRelationList);
-						
-						fileText.append(classRelationList);
+						fileText.append(addRelationsToFile(classObject.getRelations()));
 						fileText.append(createFileFooter());
 						String filePathName = directory+"/"+classObject.getClassName()+".iuml";
 						SaveFileHelper.createFile(fileText.toString(), filePathName);
@@ -225,6 +218,8 @@ public class PlantRenderer {
 					generalFileText.append(include).append("\n");				
 				}
 				generalFileText.append("\n");
+				
+				relations = excludeImplementationFromList(relations);
 				for (String relation : relations) {
 					generalFileText.append(relation).append("\n");
 				}
@@ -252,11 +247,6 @@ public class PlantRenderer {
 					}
 					fileText.append(relationsHeader);
 					for (ClassObject classObject : packageObject.getClassObjects()) {
-//						if (classObject.getRelations() != null) {
-//							for (Relation relation : classObject.getRelations()) {
-//								fileText.append(relation.toString()).append("\n");
-//							}
-//						}
 						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
 					fileText.append(createFileFooter());
@@ -276,11 +266,6 @@ public class PlantRenderer {
 				fileText.append(relationsHeader);
 				for(PackageObject packageObject: packageObjects ){
 					for (ClassObject classObject : packageObject.getClassObjects()) {
-//						if (classObject.getRelations() != null) {
-//							for (Relation relation : classObject.getRelations()) {
-//								fileText.append(relation.toString()).append("\n");
-//							}
-//						}
 						fileText.append(addRelationsToFile(classObject.getRelations()));
 					}
 				}
@@ -293,23 +278,38 @@ public class PlantRenderer {
 		}
 	}
 	
-	private String addRelationsToFile(List<Relation> relations){
-		StringBuilder fileText = new StringBuilder();
+	private List<String> excludeImplementationFromList(List<String> relations){
+		List<String> strings = new ArrayList<>();
+		for (String relation : relations) {
+			if (!relation.contains(Implementation.RELATION_TYPE_IMPLEMENTATION)) {
+				strings.add(relation);
+			}
+		}
+		Collections.sort(strings);
+		return strings;
+	}
+	
+	private List<String> getRelationListString(List<Relation> relations){
 		List<String> strings = new ArrayList<>();
 		
 		if (relations != null) {
 			for (Relation relation : relations) {
 				if (!relation.toString().contains(Implementation.RELATION_TYPE_IMPLEMENTATION)) {
-//					fileText.append("'"+relation.toString()).append("\n");
 					strings.add("'"+relation.toString());
 				}else{
 					strings.add(relation.toString());
-//					fileText.append(relation.toString()).append("\n");
 				}
 				
 			}
 		}
 		Collections.sort(strings);
+		return strings;
+	}
+	
+	private String addRelationsToFile(List<Relation> relations){
+		StringBuilder fileText = new StringBuilder();
+		
+		List<String> strings = getRelationListString(relations);
 		for (String string : strings) {
 			fileText.append(string).append("\n");
 		}
@@ -340,8 +340,12 @@ public class PlantRenderer {
 		sortClasses(classObjects);
 		for (ClassObject classObject : classObjects) {
 			if (classObject.getPackageObject()!=null) {
+				
+				classObject.setClassDeclaration(TypesHelper.changeClassName(classObject.getClassDeclaration()));
+				
 				PackageObject packageObject = packageObjectsMap.get(classObject.getPackageObject().getPackageName());
 				List<ClassObject> classObjects = packageObject.getClassObjects();
+				
 				if (packageObject.getClassObjects()==null) {
 					classObjects = new ArrayList<>();
 					packageObject.setClassObjects(classObjects);

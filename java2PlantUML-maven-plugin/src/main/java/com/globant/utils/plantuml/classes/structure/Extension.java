@@ -2,6 +2,8 @@ package com.globant.utils.plantuml.classes.structure;
 
 import java.lang.reflect.Member;
 
+import com.globant.utils.plantuml.classes.util.TypesHelper;
+
 /**
  * @author juanmf@gmail.com
  * @modified efrain.calla
@@ -48,7 +50,7 @@ public class Extension implements Relation {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", from.getName(), RELATION_TYPE_EXTENSION, to);
+        return String.format("%s %s %s", TypesHelper.changeClassName(from.getName()), RELATION_TYPE_EXTENSION, TypesHelper.changeClassName(to));
     }
 
     @Override

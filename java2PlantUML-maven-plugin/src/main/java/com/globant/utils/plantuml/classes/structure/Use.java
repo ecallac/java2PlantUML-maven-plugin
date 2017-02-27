@@ -2,6 +2,8 @@ package com.globant.utils.plantuml.classes.structure;
 
 import java.lang.reflect.Member;
 
+import com.globant.utils.plantuml.classes.util.TypesHelper;
+
 /**
  * @author juanmf@gmail.com
  * @modified efrain.calla
@@ -57,7 +59,7 @@ public class Use implements Relation {
     @Override
     public String toString() {
         String fname = null == getMessage() ? "" : " : " + getMessage();
-        return String.format("%s %s %s %s", from.getName(), RELATION_TYPE_USE, to, fname);
+        return String.format("%s %s %s %s", TypesHelper.changeClassName(from.getName()), RELATION_TYPE_USE, TypesHelper.changeClassName(to), fname);
     }
 
     @Override

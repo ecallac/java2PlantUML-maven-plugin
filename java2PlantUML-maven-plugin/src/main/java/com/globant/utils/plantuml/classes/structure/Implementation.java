@@ -16,7 +16,7 @@ public class Implementation extends Extension {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", getFromType().getName(), RELATION_TYPE_IMPLEMENTATION, getToType());
+        return String.format("%s %s %s", TypesHelper.changeClassName(getFromType().getName()), RELATION_TYPE_IMPLEMENTATION, TypesHelper.changeClassName(getToType()));
     }
 
     public String asLollipop() {
